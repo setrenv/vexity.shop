@@ -30,14 +30,3 @@ main {
   padding: 0 1rem;
 }
 
-section.intro {
-  margin-bottom: 2rem;
-}
-
-footer {
-  text-align: center;
-  padding: 1rem;
-  background: #222;
-  color: #fff;
-  margin-top: 2rem;
-}
