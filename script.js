@@ -1,3 +1,63 @@
+// Authentication
+const VALID_CREDENTIALS = { username: 'admin', password: '123admin123' };
+
+function handleLogin() {
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+    const errorEl = document.getElementById('loginError');
+
+    if (username === VALID_CREDENTIALS.username && password === VALID_CREDENTIALS.password) {
+        localStorage.setItem('bioAuth', 'authenticated');
+        hideLoginModal();
+        showAdminPanel();
+        errorEl.style.display = 'none';
+    } else {
+        errorEl.textContent = 'Invalid credentials. Try admin:123admin123';
+        errorEl.style.display = 'block';
+    }
+}
+
+function handleLogout() {
+    localStorage.removeItem('bioAuth');
+    hideAdminPanel();
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+}
+
+function showLoginModal() {
+    document.getElementById('loginModal').style.display = 'flex';
+}
+
+function hideLoginModal() {
+    document.getElementById('loginModal').style.display = 'none';
+    document.getElementById('loginError').style.display = 'none';
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+}
+
+function showAdminPanel() {
+    if (localStorage.getItem('bioAuth') !== 'authenticated') {
+        showLoginModal();
+        return;
+    }
+    const panel = document.getElementById('adminPanel');
+    panel.style.display = 'block';
+    renderLinksAdmin();
+}
+
+function hideAdminPanel() {
+    document.getElementById('adminPanel').style.display = 'none';
+}
+
+// Check auth on page load
+function checkAuth() {
+    if (localStorage.getItem('bioAuth') === 'authenticated') {
+        showAdminPanel();
+    } else {
+        showLoginModal();
+    }
+}
+
 // Typewriter effect
 const phrases = ["fuck yall yn's", "stalking me? that's hot"];
 let currentPhrase = 0;
@@ -33,9 +93,6 @@ function typewriter() {
         }
     }
 }
-
-// Initialize
-typewriter();
 
 // Data structure
 let bioData = {
@@ -189,15 +246,6 @@ function deleteLink(id) {
     renderLinksAdmin();
 }
 
-// Admin panel
-function toggleAdmin() {
-    const panel = document.getElementById('adminPanel');
-    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-    if (panel.style.display === 'block') {
-        renderLinksAdmin();
-    }
-}
-
 // Audio
 function toggleAudio() {
     const audio = document.getElementById('bgAudio');
@@ -209,5 +257,7 @@ function toggleAudio() {
 }
 
 // Initialize on load
+checkAuth();
+typewriter();
 loadData();
 renderLinks();

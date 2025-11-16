@@ -6,34 +6,73 @@
     <title>@1</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Added angelwish font face for custom styling -->
+    <style>
+        @font-face {
+            font-family: 'angelwish';
+            src: url('/images/angel-20wish.ttf') format('truetype');
+        }
+    </style>
 </head>
 <body>
     <div id="app" class="min-h-screen w-full overflow-hidden bg-black relative">
-        <!-- Video Background -->
-        <video id="bgVideo" autoplay muted loop class="absolute inset-0 w-full h-full object-cover opacity-30" style="display: none;"></video>
+        <!-- BIOLINK VIEW (Main) -->
+        <div id="biolinkView">
+            <!-- Video Background -->
+            <video id="bgVideo" autoplay muted loop class="absolute inset-0 w-full h-full object-cover opacity-30" style="display: none;"></video>
 
-        <!-- Content Overlay -->
-        <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
-            <div class="w-full max-w-md">
-                <!-- Profile Header -->
-                <div class="text-center mb-12">
-                    <img id="profilePic" src="/placeholder.svg" alt="profile" class="w-24 h-24 rounded-full border-2 border-amber-600/50 object-cover mx-auto mb-6" style="display: none;">
-                    <h1 class="text-4xl font-bold text-white mb-2" style="font-family: 'angelwish', sans-serif;">1</h1>
-                    <p class="text-amber-50 text-sm">@1</p>
+            <!-- Content Overlay -->
+            <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+                <div class="w-full max-w-md">
+                    <!-- Profile Header -->
+                    <div class="text-center mb-12">
+                        <img id="profilePic" src="/placeholder.svg" alt="profile" class="w-24 h-24 rounded-full border-2 border-amber-600/50 object-cover mx-auto mb-6" style="display: none;">
+                        <h1 class="text-4xl font-bold text-white mb-2" style="font-family: 'angelwish', sans-serif;">1</h1>
+                        <p class="text-amber-50 text-sm">@1</p>
+                    </div>
+
+                    <!-- Typewriter Bio -->
+                    <div class="mb-8 text-center text-amber-50" id="typewriter" style="font-family: 'angelwish', sans-serif; min-height: 60px;">
+                        <span id="typewriterText"></span><span id="cursor" class="animate-blink">|</span>
+                    </div>
+
+                    <!-- Links Container -->
+                    <div class="space-y-3 mb-8" id="linksContainer"></div>
+
+                    <!-- Added login button to manage panel -->
+                    <div class="text-center text-xs text-gray-500 flex gap-2 justify-center">
+                        <a href="#" onclick="showLoginModal(); return false;" class="hover:text-amber-600 transition-colors">manage</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal (overlays on biolink) -->
+    <div id="loginModal" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4" style="display: none;">
+        <div class="w-full max-w-sm">
+            <div class="text-center mb-12">
+                <h1 class="text-5xl font-bold text-white mb-2" style="font-family: 'angelwish', sans-serif;">@1</h1>
+                <p class="text-gray-400 text-sm">manage your biolink</p>
+            </div>
+
+            <div class="bg-gray-900 border border-gray-700 rounded-lg p-8">
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-2">Username</label>
+                        <input type="text" id="loginUsername" placeholder="admin" class="w-full p-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-500 focus:outline-none focus:border-amber-600">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-300 mb-2">Password</label>
+                        <input type="password" id="loginPassword" placeholder="••••••••••••" class="w-full p-3 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-500 focus:outline-none focus:border-amber-600">
+                    </div>
                 </div>
 
-                <!-- Typewriter Bio -->
-                <div class="mb-8 text-center text-amber-50" id="typewriter" style="font-family: 'angelwish', sans-serif; min-height: 60px;">
-                    <span id="typewriterText"></span><span id="cursor" class="animate-blink">|</span>
-                </div>
-
-                <!-- Links Container -->
-                <div class="space-y-3 mb-8" id="linksContainer"></div>
-
-                <!-- Admin Link -->
-                <div class="text-center text-xs text-gray-500">
-                    <a href="#" onclick="toggleAdmin(); return false;" class="hover:text-amber-600 transition-colors">manage</a>
-                </div>
+                <button onclick="handleLogin()" class="w-full px-6 py-3 bg-amber-600 text-white rounded font-medium hover:bg-amber-700 transition-colors">Login</button>
+                <p id="loginError" class="text-red-500 text-xs mt-3 text-center" style="display: none;"></p>
+                
+                <!-- Added close button -->
+                <button onclick="hideLoginModal()" class="w-full mt-2 px-6 py-3 bg-gray-800 text-gray-300 rounded font-medium hover:bg-gray-700 transition-colors">Cancel</button>
             </div>
         </div>
     </div>
@@ -43,7 +82,10 @@
         <div class="max-w-4xl mx-auto">
             <div class="flex justify-between items-center mb-8">
                 <h1 class="text-3xl font-bold text-white">Admin Dashboard</h1>
-                <button onclick="toggleAdmin()" class="text-gray-400 hover:text-white text-2xl">×</button>
+                <div class="flex gap-4">
+                    <button onclick="hideAdminPanel()" class="text-gray-400 hover:text-white">Close</button>
+                    <button onclick="handleLogout()" class="text-gray-400 hover:text-amber-600">Logout</button>
+                </div>
             </div>
 
             <!-- Media Upload Section -->
@@ -90,9 +132,6 @@
                     <button onclick="addLink()" class="px-6 py-2 bg-amber-600 text-white rounded font-medium hover:bg-amber-700 transition-colors">Add</button>
                 </div>
             </div>
-
-            <!-- Back Button -->
-            <button onclick="toggleAdmin()" class="px-4 py-2 bg-gray-700 text-gray-300 rounded hover:bg-amber-600 hover:text-white transition-colors">← Back to Biolink</button>
         </div>
     </div>
 
