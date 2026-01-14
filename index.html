@@ -1,63 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>In Progress</title>
-    <style>
-        body {
-            background: #111;
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            font-size: 2rem;
-            cursor: pointer;
-        }
+  <meta charset="UTF-8" />
+  <title>In Progress</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      font-size: 2rem;
+    }
 
-        #enter {
-            opacity: 1;
-            transition: opacity 0.3s ease;
-        }
+    #enter {
+      cursor: pointer;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+      user-select: none;
+    }
 
-        #content {
-            display: none;
-        }
-    </style>
+    #content {
+      display: none;
+      font-size: 1.25rem;
+      text-align: center;
+      padding: 0 16px;
+    }
+  </style>
 </head>
 <body>
+  <div id="enter">click to enter</div>
 
-    <div id="enter">click to enter</div>
+  <div id="content">
+    idk coming soon, meanwhile enjoy my fav song, ty
+    <audio id="music" loop>
+      <source src="song1.mp3" type="audio/mpeg" />
+    </audio>
+  </div>
 
-    <div id="content">
-       idk coming soon, meanwhile enjoy my fav song, ty
-        <audio id="music" loop>
-            <source src="song1.mp3" type="audio/mpeg">
-        </audio>
-    </div>
+  <script>
+    const enter = document.getElementById("enter");
+    const content = document.getElementById("content");
+    const music = document.getElementById("music");
 
-    <script>
-        const enter = document.getElementById("enter");
-        const content = document.getElementById("content");
-        const music = document.getElementById("music");
+    function enterSite() {
+      enter.style.opacity = "0";
 
-        document.body.addEventListener("click", handler, { once: true });
-            enter.style.opacity = 0;
+      setTimeout(() => {
+        enter.style.display = "none";
+        content.style.display = "block";
 
-            setTimeout(() => {
-                enter.style.display = "none";
-                content.style.display = "block";
-                music.play().catch(() => {});
-            }, 300);
-        });
-    </script>
 
+        music.play().catch(() => {});
+      }, 300);
+    }
+
+
+    enter.addEventListener("click", enterSite, { once: true });
+  </script>
 </body>
 </html>
-
-
-
-
-
