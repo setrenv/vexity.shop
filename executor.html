@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Executor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      background: #0f0f0f;
+      color: #fff;
+      font-family: monospace;
+      margin: 0;
+      padding: 16px;
+    }
+
+    .status {
+      margin-bottom: 12px;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    textarea {
+      width: 100%;
+      height: 40vh;
+      background: #111;
+      color: #fff;
+      border: 1px solid #333;
+      padding: 12px;
+      resize: vertical;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px;
+      background: #1a1a1a;
+      color: #fff;
+      border: 1px solid #333;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="status" id="status">Disconnected</div>
+
+  <textarea id="editor" placeholder="Lua code here..."></textarea>
+
+  <div class="buttons">
+    <button id="attach">Attach</button>
+    <button id="execute" disabled>Execute</button>
+    <button id="clear">Clear</button>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const session = params.get("session");
+
+    const statusEl = document.getElementById("status");
+    const editor = document.getElementById("editor");
+    const btnAttach = document.getElementById("attach");
+    const btnExecute = document.getElementById("execute");
+    const btnClear = document.getElementById("clear");
+
+    if (!session) {
+      statusEl.textContent = "No session ID provided.";
+      btnAttach.disabled = true;
+    }
+
+    // CHANGE THIS to your relay URL
+    const ws = new WebSocket("wss://your-relay-domain/ws");
+
+    ws.onopen = () => {
+      statusEl.textContent = "Connected to relay";
+    };
+
+    ws.onclose = () => {
+      statusEl.textContent = "Disconnected";
+      btnExecute.disabled = true;
+    };
+
+    ws.onmessage = (e) => {
+      // optional: handle logs / responses later
+      console.log("PC:", e.data);
+    };
+
+    btnAttach.onclick = () => {
+      ws.send(JSON.stringify({
+        type: "attach",
+        session
+      }));
+
+      statusEl.textContent = "Attached to PC";
+      btnExecute.disabled = false;
+    };
+
+    btnExecute.onclick = () => {
+      ws.send(JSON.stringify({
+        type: "execute",
+        session,
+        payload: editor.value
+      }));
+    };
+
+    btnClear.onclick = () => {
+      editor.value = "";
+      ws.send(JSON.stringify({
+        type: "clear",
+        session
+      }));
+    };
+  </script>
+
+</body>
+</html>
