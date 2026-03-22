@@ -57,7 +57,9 @@ local function log(kind, name, msg)
 		name = name,
 		msg = msg or "",
 	})
-
+if name == "results/write-json" then 
+		return
+	end
 	local suffix = (msg and msg ~= "") and (" • " .. msg) or ""
 
 	if kind == "PASS" then
@@ -1551,16 +1553,7 @@ do
 	print(("TIME: %.2fs"):format(elapsed))
 	print(("============================================="))
 	print("")
-	do
-  		local out = {
-			pass = pass,
-			fail = fail,
-			warn = warnCount,
-			strictRate = strictRate,
-			blendedRate = blendedRate,
-			elapsed = elapsed,
-			results = results,
-		}
+
 	local verdict	
 if strictRate >= 100 then 
 		verdict = "🟢 should run everything fine"
@@ -1575,7 +1568,16 @@ if strictRate >= 100 then
 	end
 
 	print("VERDICT:", verdict)
-	pcall(function()
+	soft("results/write-json", function()
+		local out = {
+			pass = pass,
+			fail = fail,
+			warn = warnCount,
+			strictRate = strictRate,
+			blendedRate = blendedRate,
+			elapsed = elapsed,
+			results = results,
+		}
 		writefile(RESULT_FILE, HttpService:JSONEncode(out))
 	end)
 end
