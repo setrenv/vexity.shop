@@ -1225,7 +1225,6 @@ soft("request/header-injection", function()
 		local lower = string.lower(k)
 		if lower == "user-agent" then
 			hasUA = true
-		return "User-Agent: " .. data["user-agent"]
 
 		end
 		if string.find(lower, "fingerprint", 1, true) or string.find(lower, "identifier", 1, true) then
