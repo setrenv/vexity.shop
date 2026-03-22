@@ -1,5 +1,26 @@
+local LOG_FILE = ".skazd_checkpoint.txt"
 
+-- reset file every run (so it's clean)
+writefile(LOG_FILE, "")
 
+local function writeLog(text)
+    appendfile(LOG_FILE, text .. "\n")
+end
+
+local TEST_INDEX = 0
+
+-- resume support
+local LAST_CHECKPOINT = 0
+if isfile(LOG_FILE) then
+    for line in readfile(LOG_FILE):gmatch("[^\r\n]+") do
+        local n = line:match("CHECKPOINT:(%d+)")
+        if n then
+            LAST_CHECKPOINT = tonumber(n)
+        end
+    end
+end
+
+local TEST_INDEX = 0
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 
@@ -49,6 +70,10 @@ end
 local TEST_TIMEOUT = 3 -- seconds (tweak if needed)
 
 local function runtest(isSoft, name, fn)
+    TEST_INDEX += 1
+
+    writeLog(("START:%d:%s"):format(TEST_INDEX, name))
+
     local finished = false
     local ok, err
 
@@ -63,7 +88,7 @@ local function runtest(isSoft, name, fn)
         finished = true
     end)
 
-    -- watchdog
+    -- watchdog (same as yours)
     local start = os.clock()
     while not finished and (os.clock() - start) < TEST_TIMEOUT do
         task.wait()
@@ -73,10 +98,11 @@ local function runtest(isSoft, name, fn)
     local timeMsg = ENABLE_TIMING and ("%.4fs"):format(dt) or nil
 
     if not finished then
-        -- 🔥 bad executor behavior caught
+        writeLog(("FAIL:%d:%s:timeout"):format(TEST_INDEX, name))
+        writeLog(("CRASH_AT:%d:%s"):format(TEST_INDEX, name))
+
         log(isSoft and "WARN" or "FAIL", name, "timeout / hang / crash")
-        
-        -- attempt kill (some execs support it)
+
         pcall(function()
             task.cancel(thread)
         end)
@@ -90,8 +116,14 @@ local function runtest(isSoft, name, fn)
     currentCleanupStack = prevCleanup
 
     if ok then
+        writeLog(("PASS:%d:%s"):format(TEST_INDEX, name))
+        writeLog(("CHECKPOINT:%d"):format(TEST_INDEX)) -- just for trace, not resume
+
         log("PASS", name, timeMsg)
     else
+        writeLog(("FAIL:%d:%s:%s"):format(TEST_INDEX, name, tostring(err)))
+        writeLog(("CRASH_AT:%d:%s"):format(TEST_INDEX, name))
+
         log(isSoft and "WARN" or "FAIL", name, tostring(err))
     end
 end
