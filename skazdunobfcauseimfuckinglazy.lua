@@ -1,5 +1,9 @@
-local LOG_FILE = "skazd_" .. os.time() .. ".txt"
+local LOG_FILE = "skazd_log.txt"
 writefile(LOG_FILE, "START\n")
+
+local function writeLog(text)
+    appendfile(LOG_FILE, text .. "\n")
+end
 
 local TEST_INDEX = 0
 
