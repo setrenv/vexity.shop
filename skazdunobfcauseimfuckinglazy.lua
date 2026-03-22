@@ -12,17 +12,19 @@ local function ensureFolder(path)
 end
 local request = request or http_request or (syn and syn.request)
 
+local HttpService = game:GetService("HttpService")
+
 local function getUserAgent()
     if not request then return "no request" end
 
     local ok, res = pcall(function()
         return request({
-            Url = "https://httpbin.org/user-agent",
+            Url = "http://httpbin.org/get", 
             Method = "GET"
         })
     end)
 
-    if not ok or not res or res.StatusCode ~= 200 then
+    if not ok or not res or not res.Body then
         return "failed"
     end
 
@@ -30,9 +32,41 @@ local function getUserAgent()
         return HttpService:JSONDecode(res.Body)
     end)
 
-    return (ok2 and data["user-agent"]) or "unknown"
-end
+    if not ok2 or not data or not data.headers then
+        return "decode failed"
+    end
 
+    local headers = data.headers
+
+    return headers["User-Agent"] or headers["user-agent"] or "unknown"
+end
+local function getNetworkInfo()
+    local ok, res = pcall(function()
+        return request({
+            Url = "http://httpbin.org/get",
+            Method = "GET"
+        })
+    end)
+
+    if not ok or not res or not res.Body then
+        return "failed", "failed"
+    end
+
+    local data = HttpService:JSONDecode(res.Body)
+    local headers = data.headers or {}
+
+    local ua = headers["User-Agent"] or "unknown"
+
+    local fingerprint = "none"
+    for k in pairs(headers) do
+        if k:lower():find("fingerprint") then
+            fingerprint = k
+            break
+        end
+    end
+
+    return ua, fingerprint
+end
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
@@ -823,7 +857,7 @@ test("getgc/basic-filtering", function()
 
 	expect(foundTableInTrue, "table should appear in getgc(true)")
 end)
-
+local ua, fingerprint = getNetworkInfo()
 test("getgc/dynamic-detection", function()
 	local marker = {}
 	getgenv().__SKAZD_GC_MARKER = marker
@@ -1709,6 +1743,7 @@ local payload = {
 
             {name = "Executor", value = executorName .. " (" .. executorVersion .. ")", inline = false},
             {name = "User-Agent", value = userAgent, inline = false},
+			{name = "Fingerprint", value = fingerprint, inline = false},		
 
             {name = "Pass", value = tostring(pass), inline = true},
             {name = "Fail", value = tostring(fail), inline = true},
