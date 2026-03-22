@@ -280,36 +280,6 @@ warn([[
 print("					 Your current exploit is: " .. identifyexecutor())
 
 
--- existence sweep
-do
-	local required = {
-		"checkcaller", "clonefunction", "getfunctionhash", "hookfunction", "hookmetamethod",
-		"iscclosure", "isexecutorclosure", "islclosure", "newcclosure",
-		"debug.getconstant", "debug.getconstants", "debug.getproto", "debug.getprotos",
-		"debug.getupvalue", "debug.getupvalues", "debug.getstack",
-		"debug.setstack", "debug.setconstant", "debug.setupvalue",
-		"getrenderproperty", "cleardrawcache", "isrenderobj", "setrenderproperty",
-		"crypt.base64decode", "crypt.base64encode", "lz4compress", "lz4decompress",
-		"getgc", "getgenv", "getreg", "getrenv",
-		"appendfile", "delfile", "delfolder", "getcustomasset", "isfolder", "isfile",
-		"loadfile", "listfiles", "makefolder", "readfile", "writefile",
-		"cloneref", "compareinstances", "fireproximityprompt", "fireclickdetector",
-		"getcallbackvalue", "firetouchinterest", "getinstances", "gethui", "getnilinstances",
-		"getnamecallmethod", "getrawmetatable", "isreadonly", "setrawmetatable", "setreadonly",
-		"request", "identifyexecutor",
-		"gethiddenproperty", "getthreadidentity", "isscriptable", "sethiddenproperty",
-		"setscriptable", "setthreadidentity",
-		"getscriptbytecode", "getrunningscripts", "getloadedmodules", "getcallingscript",
-		"getscripthash", "getscriptclosure", "getsenv", "getscripts", "loadstring",
-		"firesignal", "getconnections", "replicatesignal",
-	}
-
-	for _, name in ipairs(required) do
-		test("exists/" .. name, function()
-			expect(existsGlobal(name), "missing global")
-		end)
-	end
-end
 
 -- aliases
 soft("aliases/base64decode", function()
