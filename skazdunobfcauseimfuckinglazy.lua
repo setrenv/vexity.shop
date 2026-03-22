@@ -1,12 +1,41 @@
-local LOG_FILE = "skazd_log.txt"
+local BASE_FOLDER = ".skazd"
+local function sanitizeName(name)
+    return name:gsub("[^%w_%-]", "_")
+end
+local function ensureFolder(path)
+    if not isfolder(path) then
+        local ok = pcall(makefolder, path)
+        if not ok then
+            warn("makefolder failed:", path)
+        end
+    end
+end
+
+ensureFolder(BASE_FOLDER)
+local function makeTestFolder(index, name)
+    local base = ".skazd/tests"
+
+    if not isfolder(base) then
+        makefolder(base)
+    end
+
+    local folder = string.format("%s/%03d_%s", base, index, sanitizeName(name))
+
+    if not isfolder(folder) then
+        makefolder(folder)
+    end
+
+    return folder
+end
+-- some executors need a tiny delay
+task.wait()
+local LOG_FILE = BASE_FOLDER .. "/checkpoint.txt"
 writefile(LOG_FILE, "START\n")
 
 local function writeLog(text)
     appendfile(LOG_FILE, text .. "\n")
 end
-
-local TEST_INDEX = 0
-
+local RESULT_FILE = BASE_FOLDER .. "/results.json"
 
 
 local TEST_INDEX = 0
@@ -60,7 +89,8 @@ local TEST_TIMEOUT = 3 -- seconds (tweak if needed)
 
 local function runtest(isSoft, name, fn)
     TEST_INDEX += 1
-
+local testFolder = makeTestFolder(TEST_INDEX, name)
+getgenv().__SKAZD_TEST_FOLDER = testFolder
     writeLog(("START:%d:%s"):format(TEST_INDEX, name))
 
     local finished = false
@@ -113,6 +143,14 @@ end
         writeLog(("CRASH_AT:%d:%s"):format(TEST_INDEX, name))
 
         log(isSoft and "WARN" or "FAIL", name, tostring(err))
+		pcall(function()
+    if isfolder(testFolder) then
+        for _, f in ipairs(listfiles(testFolder)) do
+            pcall(delfile, f)
+        end
+        delfolder(testFolder)
+    end
+end)
     end
 end
 
@@ -809,81 +847,97 @@ else
 end
 
 -- Filesystem
+
 do
-	local base = ".skazd"
+    test("filesystem/makefolder-isfolder", function()
+        local base = getgenv().__SKAZD_TEST_FOLDER
 
-	soft("filesystem/cleanup-old", function()
-		if isfolder(base) then
-			delfolder(base)
-		end
-	end)
+        if not isfolder(base) then
+            makefolder(base)
+        end
 
-	test("filesystem/makefolder-isfolder", function()
-		makefolder(base)
-		expectEq(isfolder(base), true)
-	end)
+        expectEq(isfolder(base), true)
+    end)
 
-	test("filesystem/write-read-overwrite", function()
-		writefile(base .. "/a.txt", "A")
-		expectEq(isfile(base .. "/a.txt"), true)
-		expectEq(readfile(base .. "/a.txt"), "A")
+    test("filesystem/write-read-overwrite", function()
+        local base = getgenv().__SKAZD_TEST_FOLDER
 
-		writefile(base .. "/a.txt", "Z")
-		expectEq(readfile(base .. "/a.txt"), "Z")
-	end)
+        writefile(base .. "/a.txt", "A")
+        expectEq(isfile(base .. "/a.txt"), true)
+        expectEq(readfile(base .. "/a.txt"), "A")
 
-	test("filesystem/appendfile", function()
-		writefile(base .. "/append.txt", "su")
-		appendfile(base .. "/append.txt", "cce")
-		appendfile(base .. "/append.txt", "ss")
-		expectEq(readfile(base .. "/append.txt"), "success")
-	end)
+        writefile(base .. "/a.txt", "Z")
+        expectEq(readfile(base .. "/a.txt"), "Z")
+    end)
 
-	test("filesystem/listfiles", function()
-		local listed = listfiles(base)
-		expect(type(listed) == "table", "listfiles must return table")
+    test("filesystem/appendfile", function()
+        local base = getgenv().__SKAZD_TEST_FOLDER
 
-		local found = false
-		for _, v in ipairs(listed) do
-			if tostring(v):find("append%.txt") then
-				found = true
-				break
-			end
-		end
+        writefile(base .. "/append.txt", "su")
+        appendfile(base .. "/append.txt", "cce")
+        appendfile(base .. "/append.txt", "ss")
+        expectEq(readfile(base .. "/append.txt"), "success")
+    end)
 
-		expect(found, "listfiles must include appended file")
-	end)
+    test("filesystem/listfiles", function()
+        local base = getgenv().__SKAZD_TEST_FOLDER
 
-	test("filesystem/loadfile", function()
-		writefile(base .. "/chunk.lua", "return function() return 321 end")
-		local chunk = loadfile(base .. "/chunk.lua")
-		expect(type(chunk) == "function", "loadfile must return compiled chunk")
+        local listed = listfiles(base)
+        expect(type(listed) == "table")
 
-		local produced = chunk()
-		expect(type(produced) == "function", "chunk should return inner function")
-		expectEq(produced(), 321)
-	end)
+        local found = false
+        for _, v in ipairs(listed) do
+            if tostring(v):find("append%.txt") then
+                found = true
+                break
+            end
+        end
 
-	test("filesystem/getcustomasset", function()
-		writefile(base .. "/asset.txt", "HELLO")
-		local asset = getcustomasset(base .. "/asset.txt")
-		expect(type(asset) == "string")
-		expect(asset:find("rbxasset") ~= nil, "expected rbxasset-like content id")
-	end)
+        expect(found, "listfiles must include appended file")
+    end)
 
-	test("filesystem/delfile", function()
-		writefile(base .. "/dead.txt", "bye")
-		expectEq(isfile(base .. "/dead.txt"), true)
-		delfile(base .. "/dead.txt")
-		expectEq(isfile(base .. "/dead.txt"), false)
-	end)
+    test("filesystem/loadfile", function()
+        local base = getgenv().__SKAZD_TEST_FOLDER
 
-	test("filesystem/delfolder", function()
-		makefolder(base .. "/sub")
-		expectEq(isfolder(base .. "/sub"), true)
-		delfolder(base .. "/sub")
-		expectEq(isfolder(base .. "/sub"), false)
-	end)
+        writefile(base .. "/chunk.lua", "return function() return 321 end")
+        local chunk = loadfile(base .. "/chunk.lua")
+
+        expect(type(chunk) == "function")
+
+        local produced = chunk()
+        expect(type(produced) == "function")
+        expectEq(produced(), 321)
+    end)
+
+    test("filesystem/getcustomasset", function()
+        local base = getgenv().__SKAZD_TEST_FOLDER
+
+        writefile(base .. "/asset.txt", "HELLO")
+        local asset = getcustomasset(base .. "/asset.txt")
+
+        expect(type(asset) == "string")
+        expect(asset:find("rbxasset") ~= nil)
+    end)
+
+    test("filesystem/delfile", function()
+        local base = getgenv().__SKAZD_TEST_FOLDER
+
+        writefile(base .. "/dead.txt", "bye")
+        expectEq(isfile(base .. "/dead.txt"), true)
+
+        delfile(base .. "/dead.txt")
+        expectEq(isfile(base .. "/dead.txt"), false)
+    end)
+
+    test("filesystem/delfolder", function()
+        local base = getgenv().__SKAZD_TEST_FOLDER
+
+        makefolder(base .. "/sub")
+        expectEq(isfolder(base .. "/sub"), true)
+
+        delfolder(base .. "/sub")
+        expectEq(isfolder(base .. "/sub"), false)
+    end)
 end
 
 -- Instances / engine interaction
