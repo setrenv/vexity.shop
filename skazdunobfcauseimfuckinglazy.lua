@@ -1,10 +1,18 @@
 local BASE_FOLDER = ".skazd"
 
+-- ensure folder exists (robust)
 if not isfolder(BASE_FOLDER) then
-    makefolder(BASE_FOLDER)
+    local ok = pcall(function()
+        makefolder(BASE_FOLDER)
+    end)
+
+    if not ok or not isfolder(BASE_FOLDER) then
+        warn("Failed to create .skazd folder, falling back to root")
+        BASE_FOLDER = "" -- fallback
+    end
 end
 
--- timestamp (safe)
+-- safe timestamp
 local t = os.date("*t")
 local timestamp = string.format(
     "%04d-%02d-%02d_%02d-%02d-%02d",
@@ -12,11 +20,23 @@ local timestamp = string.format(
     t.hour, t.min, t.sec
 )
 
-local LOG_FILE = BASE_FOLDER .. "/checkpoint_" .. timestamp .. ".txt"
-local RESULT_FILE = BASE_FOLDER .. "/results_" .. timestamp .. ".json"
+-- add randomness (prevents collisions + weird executor bugs)
+timestamp = timestamp .. "_" .. tostring(math.random(1000,9999))
 
--- reset log
-writefile(LOG_FILE, "")
+local LOG_FILE = (BASE_FOLDER ~= "" and (BASE_FOLDER .. "/") or "") ..
+    "checkpoint_" .. timestamp .. ".txt"
+
+-- test write immediately (VERY important)
+local ok = pcall(function()
+    writefile(LOG_FILE, "")
+end)
+
+if not ok then
+    warn("File write failed, falling back to simple name")
+
+    LOG_FILE = "checkpoint_fallback.txt"
+    writefile(LOG_FILE, "")
+end
 
 local function writeLog(text)
     appendfile(LOG_FILE, text .. "\n")
