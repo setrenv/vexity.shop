@@ -499,6 +499,91 @@ test("newcclosure/yieldable", function()
 	expectEq(c(), 123, "newcclosure should be yieldable")
 end)
 
+test("cache.invalidate/basic", function()
+    local folder = Instance.new("Folder")
+    local part = Instance.new("Part", folder)
+
+    pushCleanup(function()
+        folder:Destroy()
+    end)
+
+local before = cache.iscached(part)
+cache.invalidate(part)
+local after = cache.iscached(part)
+
+expect(before == true, "should be cached before")
+expect(after == false, "should not be cached after")
+end)
+
+test("cache.iscached/basic", function()
+    local p = Instance.new("Part")
+
+    expectEq(cache.iscached(p), true)
+    cache.invalidate(p)
+    expectEq(cache.iscached(p), false)
+end)
+
+test("cache.replace/basic", function()
+    local a = Instance.new("Part")
+    local b = Instance.new("Fire")
+
+    cache.replace(a, b)
+expect(cache.iscached(a), "a should still be cached")
+end)
+
+soft("console/rconsoleprint", function()
+    rconsoleprint("skazd console test\n")
+end)
+
+soft("console/rconsoleclear", function()
+    rconsoleclear()
+end)
+
+soft("console/rconsolesettitle", function()
+    rconsolesettitle("SKAZD TEST")
+end)
+
+soft("console/rconsolecreate-destroy", function()
+    if rconsolecreate and rconsoledestroy then
+        rconsolecreate()
+        rconsoledestroy()
+    end
+end)
+
+soft("input/isrbxactive", function()
+    expect(type(isrbxactive()) == "boolean")
+end)
+
+soft("input/mouse-functions-exist", function()
+    expect(type(mouse1click) == "function")
+    expect(type(mousemoverel) == "function")
+end)
+
+test("crypt.encrypt-decrypt", function()
+    local key = crypt.generatekey()
+    local data = "skazd_" .. tostring(math.random(1000,9999))
+
+    local enc, iv = crypt.encrypt(data, key, nil, "CBC")
+    expect(type(enc) == "string")
+    expect(type(iv) == "string")
+
+    local dec = crypt.decrypt(enc, key, iv, "CBC")
+    expectEq(dec, data)
+end)
+
+test("crypt.generatebytes", function()
+    local n = 32
+    local bytes = crypt.generatebytes(n)
+    expect(#crypt.base64decode(bytes) == n)
+end)
+
+test("crypt.hash", function()
+    local h = crypt.hash("test", "sha256")
+    expect(type(h) == "string")
+end)
+
+
+
 -- Debug
 test("debug.getconstant/basic", function()
 	local function f()
@@ -509,7 +594,16 @@ test("debug.getconstant/basic", function()
 	expectEq(debug.getconstant(f, 2), nil)
 	expectEq(debug.getconstant(f, 3), "HELLO_CONST")
 end)
+test("debug.getinfo/basic", function()
+    local function f() return 1 end
 
+    local info = debug.getinfo(f)
+    expect(type(info) == "table")
+
+    expect(type(info.source) == "string")
+    expect(type(info.func) == "function")
+    expect(type(info.what) == "string")
+end)
 test("debug.getconstant/cclosure-error", function()
 	local ok = pcall(function()
 		return debug.getconstant(print, 1)
@@ -1164,6 +1258,22 @@ soft("getnamecallmethod/inside-namecall-hook", function()
 end)
 
 -- Network / identity
+soft("setfpscap/basic", function()
+    setfpscap(60)
+    task.wait(0.1)
+    setfpscap(0)
+end)
+
+soft("setclipboard/basic", function()
+    setclipboard("skazd_test")
+end)
+
+soft("queue_on_teleport/basic", function()
+    if queue_on_teleport then
+        queue_on_teleport("print('skazd')")
+    end
+end)
+
 test("executor/stability-multi-run", function()
     for i = 1, 5 do
         local ok = pcall(function()
@@ -1354,6 +1464,8 @@ soft("getloadedmodules/only-loaded", function()
 	expect(afterFound, "required module should appear in getloadedmodules")
 end)
 
+
+
 soft("getrunningscripts/basic", function()
 	local running = getrunningscripts()
 	expect(type(running) == "table")
@@ -1386,6 +1498,23 @@ soft("getscriptclosure/basic-or-nil", function()
 
 	local cl = getscriptclosure(s)
 	expect(cl == nil or type(cl) == "function", "must be function or nil")
+end)
+
+test("getconnections/structure", function()
+    local b = Instance.new("BindableEvent")
+    pushCleanup(function() b:Destroy() end)
+
+    b.Event:Connect(function() end)
+
+    local conns = getconnections(b.Event)
+    expect(type(conns) == "table")
+    expect(#conns > 0)
+
+    local c = conns[1]
+
+    expect(type(c.Function) == "function")
+    expect(type(c.Thread) == "thread")
+    expect(type(c.Disconnect) == "function")
 end)
 
 soft("getsenv/errors-on-not-running", function()
