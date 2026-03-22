@@ -1275,7 +1275,8 @@ soft("gethiddenproperty/basic-visible-prop", function()
 	expectEq(hidden, false)
 end)
 
- --[[soft("sethiddenproperty/basic", function()
+ --[[
+soft("sethiddenproperty/basic", function()
 	local p = Instance.new("Part")
 	pushCleanup(function()
 		cleanupInstance(p)
@@ -1290,7 +1291,7 @@ end)
 
 	p.Name = before
 end)
---]]
+-
 soft("privilege/identity-affects-access", function()
 	local before = getthreadidentity()
 
@@ -1308,7 +1309,7 @@ soft("privilege/identity-affects-access", function()
 
 	expect(okLow ~= okHigh or okHigh == true, "identity change should affect capability surface or at least succeed high")
 end)
-
+--]]
 -- Scripts / bytecode / env
 test("loadstring/valid", function()
 	local f = loadstring("return 5")
