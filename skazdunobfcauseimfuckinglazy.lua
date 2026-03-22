@@ -1274,7 +1274,7 @@ soft("gethiddenproperty/basic-visible-prop", function()
 	expectEq(hidden, false)
 end)
 
-- soft("sethiddenproperty/basic", function()
+ soft("sethiddenproperty/basic", function()
 	local p = Instance.new("Part")
 	pushCleanup(function()
 		cleanupInstance(p)
