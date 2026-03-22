@@ -1,30 +1,5 @@
-local BASE_FOLDER = ".skazd"
-
-if not isfolder(BASE_FOLDER) then
-    makefolder(BASE_FOLDER)
-end
-
-local t = os.date("*t")
-local timestamp = string.format(
-    "%04d-%02d-%02d_%02d-%02d-%02d",
-    t.year, t.month, t.day,
-    t.hour, t.min, t.sec
-)
-
-local LOG_FILE = BASE_FOLDER .. "/checkpoint_" .. timestamp .. ".txt"
-
--- 🔥 FORCE create file FIRST
-local ok, err = pcall(function()
-    writefile(LOG_FILE, "")
-end)
-
-if not ok then
-    error("FAILED TO CREATE LOG FILE: " .. tostring(err))
-end
-
-local function writeLog(text)
-    appendfile(LOG_FILE, text .. "\n")
-end
+local LOG_FILE = "skazd_" .. os.time() .. ".txt"
+writefile(LOG_FILE, "START\n")
 
 local TEST_INDEX = 0
 
