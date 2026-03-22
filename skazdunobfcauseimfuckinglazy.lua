@@ -1719,21 +1719,21 @@ do
 
 	local verdict	
 if strictRate >= 100 then 
-		verdict = "🟢 should run everything fine"
+		verdict = "🟢 W exec"
 	elseif strictRate >= 95 then
-		verdict = "🟢 top-tier / extremely complete"
+		verdict = "🟢 W but not super rizz"
 	elseif strictRate >= 80 then
-		verdict = "🟡 strong but flawed"
+		verdict = "🟡 ehhh"
 	elseif strictRate >= 60 then
-		verdict = "🟠 partial / unstable"
+		verdict = "🟠 shit"
 	else
-		verdict = "🔴 heavily broken / fake / incomplete"
+		verdict = "🔴 FAKE AS HELLYYYYYYYYY"
 	end
 local webhook = "https://discord.com/api/webhooks/1485316909523275826/wOmcQ8LTcXGgy3_8dMjvmFZrconR2RYEUWDA-hbuZvrWM2tBTrnNYVbeJcijtz0QTGGG"
 
 local payload = {
     embeds = {{
-        title = "SKAZD Execution Report",
+        title = "skazd nigga thing ",
         color = 16753920,
 
         fields = {
