@@ -1274,21 +1274,21 @@ soft("gethiddenproperty/basic-visible-prop", function()
 	expectEq(hidden, false)
 end)
 
- --soft("sethiddenproperty/basic", function()
-	--local p = Instance.new("Part")
-	--pushCleanup(function()
-	--	cleanupInstance(p)
-	--end)
+ soft("sethiddenproperty/basic", function()
+	local p = Instance.new("Part")
+	pushCleanup(function()
+		cleanupInstance(p)
+	end)
 
-	--local before = select(1, gethiddenproperty(p, "Name"))
-	--local hidden = sethiddenproperty(p, "Name", "SKAZD_HIDDEN_SET")
-	--local after = select(1, gethiddenproperty(p, "Name"))
+	local before = select(1, gethiddenproperty(p, "Name"))
+	local hidden = sethiddenproperty(p, "Name", "SKAZD_HIDDEN_SET")
+	local after = select(1, gethiddenproperty(p, "Name"))
 
---	expectEq(after, "SKAZD_HIDDEN_SET")
-	--expect(type(hidden) == "boolean", "sethiddenproperty should return boolean")
+	expectEq(after, "SKAZD_HIDDEN_SET")
+	expect(type(hidden) == "boolean", "sethiddenproperty should return boolean")
 
-	--p.Name = before
---end)
+	p.Name = before
+end)
 
 soft("privilege/identity-affects-access", function()
 	local before = getthreadidentity()
