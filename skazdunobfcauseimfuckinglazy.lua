@@ -1553,6 +1553,16 @@ soft("stress/filesystem-spam", function()
 	local listed = listfiles(dir)
 	expect(#listed >= 20, "expected many files after spam write")
 end)
+	soft("results/write-json", function()
+		local out = {
+			pass = pass,
+			fail = fail,
+			warn = warnCount,
+			strictRate = strictRate,
+			blendedRate = blendedRate,
+			elapsed = elapsed,
+			results = results,
+		}
 
 -- Final report
 do
@@ -1573,8 +1583,10 @@ do
 	print(("============================================="))
 	print("")
 
-	local verdict
-	if strictRate >= 95 then
+	local verdict	
+if strictRate >= 100 then 
+		verdict = "🟢 should run everything fine"
+	elseif strictRate >= 95 then
 		verdict = "🟢 top-tier / extremely complete"
 	elseif strictRate >= 80 then
 		verdict = "🟡 strong but flawed"
@@ -1585,32 +1597,6 @@ do
 	end
 
 	print("VERDICT:", verdict)
-
-	if fail > 0 or warnCount > 0 then
-		print("")
-		print("Detailed non-pass results:")
-		for _, item in ipairs(results) do
-			if item.kind ~= "PASS" then
-				print(("[%s] %s%s"):format(
-					item.kind,
-					item.name,
-					item.msg ~= "" and (" • " .. item.msg) or ""
-				))
-			end
-		end
-	end
-
-	soft("results/write-json", function()
-		local out = {
-			pass = pass,
-			fail = fail,
-			warn = warnCount,
-			strictRate = strictRate,
-			blendedRate = blendedRate,
-			elapsed = elapsed,
-			results = results,
-		}
-
 writefile(RESULT_FILE, HttpService:JSONEncode(out))
 	end)
 end
