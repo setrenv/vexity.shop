@@ -1274,24 +1274,27 @@ soft("gethiddenproperty/basic-visible-prop", function()
 	expectEq(v, "Part")
 	expectEq(hidden, false)
 end)
+ 
+local ENABLE_SETHIDDENPROPERTY = false
 
- --[[
-soft("sethiddenproperty/basic", function()
-	local p = Instance.new("Part")
-	pushCleanup(function()
-		cleanupInstance(p)
-	end)
+if ENABLE_SETHIDDENPROPERTY then
+    soft("sethiddenproperty/basic", function()
+        local p = Instance.new("Part")
+        pushCleanup(function()
+            cleanupInstance(p)
+        end)
 
-	local before = select(1, gethiddenproperty(p, "Name"))
-	local hidden = sethiddenproperty(p, "Name", "SKAZD_HIDDEN_SET")
-	local after = select(1, gethiddenproperty(p, "Name"))
+        local before = select(1, gethiddenproperty(p, "Name"))
+        local hidden = sethiddenproperty(p, "Name", "SKAZD_HIDDEN_SET")
+        local after = select(1, gethiddenproperty(p, "Name"))
 
-	expectEq(after, "SKAZD_HIDDEN_SET")
-	expect(type(hidden) == "boolean", "sethiddenproperty should return boolean")
+        expectEq(after, "SKAZD_HIDDEN_SET")
+        expect(type(hidden) == "boolean")
 
-	p.Name = before
-end)
--
+        p.Name = before
+    end)
+end
+
 soft("privilege/identity-affects-access", function()
 	local before = getthreadidentity()
 
@@ -1309,7 +1312,7 @@ soft("privilege/identity-affects-access", function()
 
 	expect(okLow ~= okHigh or okHigh == true, "identity change should affect capability surface or at least succeed high")
 end)
---]]
+
 -- Scripts / bytecode / env
 test("loadstring/valid", function()
 	local f = loadstring("return 5")
