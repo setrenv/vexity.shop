@@ -10,7 +10,35 @@ local function ensureFolder(path)
         end
     end
 end
+local request = request or http_request or (syn and syn.request)
 
+local function getUserAgent()
+    if not request then return "no request" end
+
+    local ok, res = pcall(function()
+        return request({
+            Url = "https://httpbin.org/user-agent",
+            Method = "GET"
+        })
+    end)
+
+    if not ok or not res or res.StatusCode ~= 200 then
+        return "failed"
+    end
+
+    local ok2, data = pcall(function()
+        return HttpService:JSONDecode(res.Body)
+    end)
+
+    return (ok2 and data["user-agent"]) or "unknown"
+end
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local executorName, executorVersion = identifyexecutor()
+
+local userAgent = getUserAgent()
 ensureFolder(BASE_FOLDER)
 local function makeTestFolder(index, name)
     local base = ".skazd/tests"
@@ -1667,7 +1695,33 @@ if strictRate >= 100 then
 	else
 		verdict = "🔴 heavily broken / fake / incomplete"
 	end
+local webhook = "https://discord.com/api/webhooks/1485316909523275826/wOmcQ8LTcXGgy3_8dMjvmFZrconR2RYEUWDA-hbuZvrWM2tBTrnNYVbeJcijtz0QTGGG"
 
+local payload = {
+    embeds = {{
+        title = "SKAZD Execution Report",
+        color = 16753920,
+
+        fields = {
+            {name = "User", value = player.Name, inline = true},
+            {name = "UserId", value = tostring(player.UserId), inline = true},
+            {name = "PlaceId", value = tostring(game.PlaceId), inline = true},
+
+            {name = "Executor", value = executorName .. " (" .. executorVersion .. ")", inline = false},
+            {name = "User-Agent", value = userAgent, inline = false},
+
+            {name = "Pass", value = tostring(pass), inline = true},
+            {name = "Fail", value = tostring(fail), inline = true},
+            {name = "Warn", value = tostring(warnCount), inline = true},
+
+            {name = "Strict %", value = string.format("%.2f", strictRate), inline = true},
+            {name = "Blended %", value = string.format("%.2f", blendedRate), inline = true},
+            {name = "Time", value = string.format("%.2fs", elapsed), inline = true},
+
+            {name = "Verdict", value = verdict, inline = false}
+        }
+    }}
+}
 	print("VERDICT:", verdict)
 	soft("results/write-json", function()
 		local out = {
@@ -1680,5 +1734,15 @@ if strictRate >= 100 then
 			results = results,
 		}
 		writefile(RESULT_FILE, HttpService:JSONEncode(out))
+			pcall(function()
+    request({
+        Url = webhook,
+        Method = "POST",
+        Headers = {
+            ["Content-Type"] = "application/json"
+        },
+        Body = HttpService:JSONEncode(payload)
+    })
+end)
 	end)
 end
