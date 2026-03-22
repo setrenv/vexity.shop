@@ -1551,7 +1551,8 @@ do
 	print(("TIME: %.2fs"):format(elapsed))
 	print(("============================================="))
 	print("")
-	local out = {
+	do
+  		local out = {
 			pass = pass,
 			fail = fail,
 			warn = warnCount,
@@ -1574,6 +1575,7 @@ if strictRate >= 100 then
 	end
 
 	print("VERDICT:", verdict)
-writefile(RESULT_FILE, HttpService:JSONEncode(out))
+	pcall(function()
+		writefile(RESULT_FILE, HttpService:JSONEncode(out))
 	end)
 end
