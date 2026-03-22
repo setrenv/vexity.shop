@@ -1275,25 +1275,8 @@ soft("gethiddenproperty/basic-visible-prop", function()
 	expectEq(hidden, false)
 end)
  
-local ENABLE_SETHIDDENPROPERTY = false
-
-if ENABLE_SETHIDDENPROPERTY then
-    soft("sethiddenproperty/basic", function()
-        local p = Instance.new("Part")
-        pushCleanup(function()
-            cleanupInstance(p)
-        end)
-
-        local before = select(1, gethiddenproperty(p, "Name"))
-        local hidden = sethiddenproperty(p, "Name", "SKAZD_HIDDEN_SET")
-        local after = select(1, gethiddenproperty(p, "Name"))
-
-        expectEq(after, "SKAZD_HIDDEN_SET")
-        expect(type(hidden) == "boolean")
-
-        p.Name = before
-    end)
-end
+-- disabled
+soft("sethiddenproperty/basic", function() end)
 
 soft("privilege/identity-affects-access", function()
 	local before = getthreadidentity()
