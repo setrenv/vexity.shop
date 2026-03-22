@@ -1174,6 +1174,7 @@ test("executor/stability-multi-run", function()
 end)
 test("identifyexecutor/basic", function()
 	local name, version = identifyexecutor()
+	print(identifyexecutor())
 	expect(type(name) == "string" and #name > 0, "executor name missing")
 	expect(type(version) == "string", "executor version must be string")
 end)
@@ -1224,6 +1225,8 @@ soft("request/header-injection", function()
 		local lower = string.lower(k)
 		if lower == "user-agent" then
 			hasUA = true
+		return "User-Agent: " .. data["user-agent"]
+
 		end
 		if string.find(lower, "fingerprint", 1, true) or string.find(lower, "identifier", 1, true) then
 			hasFingerprintish = true
