@@ -1551,8 +1551,7 @@ do
 	print(("TIME: %.2fs"):format(elapsed))
 	print(("============================================="))
 	print("")
-	soft("results/write-json", function()
-		local out = {
+	local out = {
 			pass = pass,
 			fail = fail,
 			warn = warnCount,
