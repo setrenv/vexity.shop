@@ -1,6 +1,21 @@
-local LOG_FILE = ".skazd_checkpoint.txt"
+local BASE_FOLDER = ".skazd"
 
--- reset file every run (so it's clean)
+if not isfolder(BASE_FOLDER) then
+    makefolder(BASE_FOLDER)
+end
+
+-- timestamp (safe)
+local t = os.date("*t")
+local timestamp = string.format(
+    "%04d-%02d-%02d_%02d-%02d-%02d",
+    t.year, t.month, t.day,
+    t.hour, t.min, t.sec
+)
+
+local LOG_FILE = BASE_FOLDER .. "/checkpoint_" .. timestamp .. ".txt"
+local RESULT_FILE = BASE_FOLDER .. "/results_" .. timestamp .. ".json"
+
+-- reset log
 writefile(LOG_FILE, "")
 
 local function writeLog(text)
@@ -1567,6 +1582,6 @@ do
 			results = results,
 		}
 
-		writefile(".skazd_results.json", HttpService:JSONEncode(out))
+writefile(RESULT_FILE, HttpService:JSONEncode(out))
 	end)
 end
