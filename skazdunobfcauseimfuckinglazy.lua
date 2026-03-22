@@ -3,16 +3,7 @@ writefile(LOG_FILE, "START\n")
 
 local TEST_INDEX = 0
 
--- resume support
-local LAST_CHECKPOINT = 0
-if isfile(LOG_FILE) then
-    for line in readfile(LOG_FILE):gmatch("[^\r\n]+") do
-        local n = line:match("CHECKPOINT:(%d+)")
-        if n then
-            LAST_CHECKPOINT = tonumber(n)
-        end
-    end
-end
+
 
 local TEST_INDEX = 0
 local HttpService = game:GetService("HttpService")
