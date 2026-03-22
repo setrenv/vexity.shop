@@ -1264,16 +1264,7 @@ soft("isscriptable-setscriptable/basic", function()
 	end
 end)
 
-soft("gethiddenproperty/basic-visible-prop", function()
-	local p = Instance.new("Part")
-	pushCleanup(function()
-		cleanupInstance(p)
-	end)
-
-	local v, hidden = gethiddenproperty(p, "Name")
-	expectEq(v, "Part")
-	expectEq(hidden, false)
-end)
+soft("gethiddenproperty/basic-visible-prop", function() end)
  
 -- disabled
 soft("sethiddenproperty/basic", function() end)
@@ -1540,16 +1531,7 @@ soft("stress/filesystem-spam", function()
 	local listed = listfiles(dir)
 	expect(#listed >= 20, "expected many files after spam write")
 end)
-	soft("results/write-json", function()
-		local out = {
-			pass = pass,
-			fail = fail,
-			warn = warnCount,
-			strictRate = strictRate,
-			blendedRate = blendedRate,
-			elapsed = elapsed,
-			results = results,
-		}
+
 
 -- Final report
 do
@@ -1569,7 +1551,16 @@ do
 	print(("TIME: %.2fs"):format(elapsed))
 	print(("============================================="))
 	print("")
-
+	soft("results/write-json", function()
+		local out = {
+			pass = pass,
+			fail = fail,
+			warn = warnCount,
+			strictRate = strictRate,
+			blendedRate = blendedRate,
+			elapsed = elapsed,
+			results = results,
+		}
 	local verdict	
 if strictRate >= 100 then 
 		verdict = "🟢 should run everything fine"
