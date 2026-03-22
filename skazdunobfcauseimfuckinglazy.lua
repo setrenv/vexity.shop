@@ -97,20 +97,19 @@ local function runtest(isSoft, name, fn)
     local dt = os.clock() - t0
     local timeMsg = ENABLE_TIMING and ("%.4fs"):format(dt) or nil
 
-    if not finished then
-        writeLog(("FAIL:%d:%s:timeout"):format(TEST_INDEX, name))
-        writeLog(("CRASH_AT:%d:%s"):format(TEST_INDEX, name))
+if not finished then
+    writeLog(("CRASH:%d:%s"):format(TEST_INDEX, name))
+    
+    log("FAIL", name, "hard crash / thread died")
 
-        log(isSoft and "WARN" or "FAIL", name, "timeout / hang / crash")
+    pcall(function()
+        task.cancel(thread)
+    end)
 
-        pcall(function()
-            task.cancel(thread)
-        end)
-
-        runCleanupStack(currentCleanupStack)
-        currentCleanupStack = prevCleanup
-        return
-    end
+    runCleanupStack(currentCleanupStack)
+    currentCleanupStack = prevCleanup
+    return
+end
 
     runCleanupStack(currentCleanupStack)
     currentCleanupStack = prevCleanup
