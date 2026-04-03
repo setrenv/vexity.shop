@@ -4,10 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Coming Soon</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
   <style>
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.7; } }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes coverIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -29,8 +31,7 @@
     }
 
     .ring {
-      width: 80px;
-      height: 80px;
+      width: 80px; height: 80px;
       border-radius: 50%;
       border: 1.5px solid #333;
       border-top-color: #888;
@@ -50,124 +51,176 @@
       transition: border-color 0.2s, color 0.2s;
       font-family: inherit;
     }
-
-    #enter-btn:hover {
-      border-color: #888;
-      color: #eee;
-    }
+    #enter-btn:hover { border-color: #888; color: #eee; }
 
     #content-screen {
       display: none;
       flex-direction: column;
       align-items: center;
-      gap: 32px;
+      gap: 28px;
       text-align: center;
       padding: 0 24px;
       animation: fadeIn 0.5s ease forwards;
     }
 
-    .dot-row {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-    }
-
+    .dot-row { display: flex; gap: 8px; justify-content: center; }
     .dot {
-      width: 6px;
-      height: 6px;
+      width: 6px; height: 6px;
       border-radius: 50%;
       background: #444;
       animation: pulse 1.8s ease-in-out infinite;
     }
-
     .dot:nth-child(2) { animation-delay: 0.3s; }
     .dot:nth-child(3) { animation-delay: 0.6s; }
 
-    .main-text {
-      color: #ccc;
-      font-size: 15px;
-      line-height: 1.7;
-      max-width: 300px;
-    }
+    .main-text { color: #ccc; font-size: 15px; line-height: 1.7; max-width: 300px; }
+    .main-text span { color: #fff; font-weight: 500; }
 
-    .main-text span {
-      color: #fff;
-      font-weight: 500;
-    }
-
-    .music-bar {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    /* ── Player card ── */
+    .music-card {
       background: #141414;
       border: 0.5px solid #2a2a2a;
-      border-radius: 40px;
-      padding: 10px 20px 10px 14px;
-      cursor: pointer;
-      transition: border-color 0.2s;
+      border-radius: 16px;
+      overflow: hidden;
+      width: 280px;
     }
 
-    .music-bar:hover { border-color: #444; }
+    /* Cover art */
+    .cover-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1;
+      background: #1a1a1a;
+      overflow: hidden;
+    }
+
+    #cover-img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    #cover-img.loaded { opacity: 1; animation: coverIn 0.4s ease; }
+
+    .cover-fallback {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0.12;
+    }
+    .cover-fallback svg { display: block; }
+
+    /* Now-playing info below cover */
+    .now-info {
+      padding: 14px 16px 12px;
+      text-align: left;
+      border-bottom: 0.5px solid #222;
+    }
+
+    .now-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
     .play-icon {
-      width: 32px;
-      height: 32px;
+      width: 34px; height: 34px;
       border-radius: 50%;
       background: #222;
       border: 0.5px solid #333;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
+      cursor: pointer;
       transition: background 0.2s;
     }
-
-    .music-bar:hover .play-icon { background: #2a2a2a; }
+    .play-icon:hover { background: #2c2c2c; }
     .play-icon svg { display: block; }
 
-    .music-label {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      text-align: left;
-    }
-
-    .music-title {
+    .now-text { flex: 1; min-width: 0; }
+    .now-title {
       color: #ddd;
       font-size: 13px;
       font-weight: 500;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      line-height: 1.3;
     }
-
-    .music-sub {
+    .now-artist {
       color: #555;
       font-size: 11px;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.04em;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-top: 2px;
     }
 
-    .bars {
-      display: flex;
-      align-items: flex-end;
-      gap: 2px;
-      height: 16px;
-    }
+    .bars { display: flex; align-items: flex-end; gap: 2px; height: 16px; flex-shrink: 0; }
+    .bar { width: 3px; background: #333; border-radius: 2px; transition: background 0.2s; }
 
-    .bar {
-      width: 3px;
-      background: #444;
-      border-radius: 2px;
-      transition: background 0.2s;
-    }
-
-    @keyframes barBounce1 { 0%, 100% { height: 4px; } 50% { height: 14px; } }
-    @keyframes barBounce2 { 0%, 100% { height: 10px; } 50% { height: 5px; } }
-    @keyframes barBounce3 { 0%, 100% { height: 7px; } 50% { height: 13px; } }
-    @keyframes barBounce4 { 0%, 100% { height: 12px; } 50% { height: 4px; } }
+    @keyframes b1 { 0%,100%{height:4px} 50%{height:14px} }
+    @keyframes b2 { 0%,100%{height:10px} 50%{height:5px} }
+    @keyframes b3 { 0%,100%{height:7px} 50%{height:13px} }
+    @keyframes b4 { 0%,100%{height:12px} 50%{height:4px} }
 
     .bar.playing { background: #666; }
-    .bar.playing:nth-child(1) { animation: barBounce1 0.8s ease-in-out infinite; }
-    .bar.playing:nth-child(2) { animation: barBounce2 0.8s ease-in-out infinite 0.1s; }
-    .bar.playing:nth-child(3) { animation: barBounce3 0.8s ease-in-out infinite 0.2s; }
-    .bar.playing:nth-child(4) { animation: barBounce4 0.8s ease-in-out infinite 0.15s; }
+    .bar.playing:nth-child(1) { animation: b1 0.8s ease-in-out infinite; }
+    .bar.playing:nth-child(2) { animation: b2 0.8s ease-in-out infinite 0.1s; }
+    .bar.playing:nth-child(3) { animation: b3 0.8s ease-in-out infinite 0.2s; }
+    .bar.playing:nth-child(4) { animation: b4 0.8s ease-in-out infinite 0.15s; }
+
+    /* Playlist */
+    .playlist { display: flex; flex-direction: column; padding: 8px 0; }
+
+    .pl-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .pl-item:hover { background: #1c1c1c; }
+    .pl-item.active { background: #1c1c1c; }
+
+    /* Small cover thumbnail */
+    .pl-thumb {
+      width: 36px; height: 36px;
+      border-radius: 4px;
+      background: #222;
+      flex-shrink: 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .pl-thumb img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .pl-thumb img.loaded { opacity: 1; }
+    .pl-thumb-fallback {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0.2;
+    }
+
+    .pl-text { flex: 1; min-width: 0; text-align: left; }
+    .pl-title { font-size: 12px; color: #777; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pl-artist { font-size: 11px; color: #444; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pl-item.active .pl-title { color: #ccc; }
+    .pl-item.active .pl-artist { color: #666; }
+
+    .pl-num {
+      font-size: 10px; color: #333;
+      width: 14px; text-align: center; flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .pl-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%; background: #666;
+      display: none; flex-shrink: 0;
+    }
+    .pl-item.active .pl-num { display: none; }
+    .pl-item.active .pl-dot { display: block; }
   </style>
 </head>
 <body>
@@ -179,50 +232,201 @@
 
   <div id="content-screen">
     <div class="dot-row">
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
     </div>
 
     <p class="main-text">
-      something's <span>coming soon</span> — until then,<br>enjoy my favourite song
+      something's <span>coming soon</span> — until then,<br>enjoy my favourite songs
     </p>
 
-    <div class="music-bar" id="music-toggle">
-      <div class="play-icon">
-        <svg id="play-svg" width="12" height="14" viewBox="0 0 12 14" fill="none">
-          <path d="M1 1.5L11 7L1 12.5V1.5Z" fill="#888"/>
-        </svg>
-        <svg id="pause-svg" width="12" height="14" viewBox="0 0 12 14" fill="none" style="display:none">
-          <rect x="1" y="1" width="3.5" height="12" rx="1" fill="#888"/>
-          <rect x="7.5" y="1" width="3.5" height="12" rx="1" fill="#888"/>
-        </svg>
+    <div class="music-card">
+
+      <!-- Big cover art -->
+      <div class="cover-wrap">
+        <img id="cover-img" src="" alt="" />
+        <div class="cover-fallback">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <circle cx="32" cy="32" r="30" stroke="white" stroke-width="1.5"/>
+            <circle cx="32" cy="32" r="10" stroke="white" stroke-width="1.5"/>
+            <circle cx="32" cy="32" r="3" fill="white"/>
+          </svg>
+        </div>
       </div>
-      <div class="music-label">
-        <span class="music-title">song1.mp3</span>
-        <span class="music-sub">tap to play</span>
+
+      <!-- Now playing -->
+      <div class="now-info">
+        <div class="now-row">
+          <div class="play-icon" id="play-icon">
+            <svg id="play-svg" width="12" height="14" viewBox="0 0 12 14" fill="none">
+              <path d="M1 1.5L11 7L1 12.5V1.5Z" fill="#888"/>
+            </svg>
+            <svg id="pause-svg" width="12" height="14" viewBox="0 0 12 14" fill="none" style="display:none">
+              <rect x="1" y="1" width="3.5" height="12" rx="1" fill="#888"/>
+              <rect x="7.5" y="1" width="3.5" height="12" rx="1" fill="#888"/>
+            </svg>
+          </div>
+          <div class="now-text">
+            <div class="now-title" id="now-title">song1.mp3</div>
+            <div class="now-artist" id="now-artist">tap to play</div>
+          </div>
+          <div class="bars">
+            <div class="bar"></div><div class="bar"></div>
+            <div class="bar"></div><div class="bar"></div>
+          </div>
+        </div>
       </div>
-      <div class="bars">
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-      </div>
+
+      <!-- Playlist -->
+      <div class="playlist" id="playlist"></div>
+
     </div>
   </div>
 
-  <audio id="music" loop><source src="song1.mp3" type="audio/mpeg"/></audio>
+  <audio id="music"></audio>
 
   <script>
-    const enterScreen = document.getElementById('enter-screen');
-    const contentScreen = document.getElementById('content-screen');
-    const music = document.getElementById('music');
-    const musicToggle = document.getElementById('music-toggle');
-    const playSvg = document.getElementById('play-svg');
-    const pauseSvg = document.getElementById('pause-svg');
-    const musicSub = document.querySelector('.music-sub');
-    const bars = document.querySelectorAll('.bar');
+    const songs = ['song1.mp3', 'song2.mp3', 'song3.mp3'];
+
+    // Per-track metadata cache: { title, artist, coverUrl }
+    const meta = songs.map(s => ({ title: s, artist: '', coverUrl: null }));
+
+    let current = 0;
     let playing = false;
+
+    const enterScreen  = document.getElementById('enter-screen');
+    const contentScreen = document.getElementById('content-screen');
+    const audio        = document.getElementById('music');
+    const coverImg     = document.getElementById('cover-img');
+    const nowTitle     = document.getElementById('now-title');
+    const nowArtist    = document.getElementById('now-artist');
+    const playSvg      = document.getElementById('play-svg');
+    const pauseSvg     = document.getElementById('pause-svg');
+    const bars         = document.querySelectorAll('.bar');
+    const playlist     = document.getElementById('playlist');
+
+    // ── Build playlist rows ──
+    songs.forEach((src, i) => {
+      const item = document.createElement('div');
+      item.className = 'pl-item' + (i === 0 ? ' active' : '');
+      item.dataset.index = i;
+      item.innerHTML = `
+        <div class="pl-thumb" id="thumb-${i}">
+          <img id="thumb-img-${i}" src="" alt="" />
+          <div class="pl-thumb-fallback">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="white" stroke-width="1.5"/>
+              <circle cx="12" cy="12" r="4" stroke="white" stroke-width="1.5"/>
+              <circle cx="12" cy="12" r="1.5" fill="white"/>
+            </svg>
+          </div>
+        </div>
+        <div class="pl-text">
+          <div class="pl-title" id="pl-title-${i}">${src}</div>
+          <div class="pl-artist" id="pl-artist-${i}"></div>
+        </div>
+        <div class="pl-num">${i + 1}</div>
+        <div class="pl-dot"></div>
+      `;
+      item.addEventListener('click', () => {
+        if (i === current && playing) { audio.pause(); setPlaying(false); }
+        else loadTrack(i, true);
+      });
+      playlist.appendChild(item);
+    });
+
+    // ── Load metadata for all tracks up front ──
+    function loadMeta(index) {
+      const src = songs[index];
+      // jsmediatags needs a URL — fetch as blob first
+      fetch(src)
+        .then(r => r.blob())
+        .then(blob => {
+          jsmediatags.read(blob, {
+            onSuccess(tag) {
+              const t = tag.tags;
+              meta[index].title  = t.title  || src.replace(/\.[^/.]+$/, '');
+              meta[index].artist = [t.artist, t.album].filter(Boolean).join(' · ') || '';
+
+              if (t.picture) {
+                const bytes = new Uint8Array(t.picture.data);
+                const imgBlob = new Blob([bytes], { type: t.picture.format });
+                meta[index].coverUrl = URL.createObjectURL(imgBlob);
+              }
+
+              // Update playlist row
+              const plTitle  = document.getElementById(`pl-title-${index}`);
+              const plArtist = document.getElementById(`pl-artist-${index}`);
+              const thumbImg = document.getElementById(`thumb-img-${index}`);
+              if (plTitle)  plTitle.textContent  = meta[index].title;
+              if (plArtist) plArtist.textContent = meta[index].artist;
+              if (thumbImg && meta[index].coverUrl) {
+                thumbImg.src = meta[index].coverUrl;
+                thumbImg.onload = () => thumbImg.classList.add('loaded');
+              }
+
+              // Refresh main display if this is the current track
+              if (index === current) updateNowPlaying();
+            },
+            onError() {
+              meta[index].title = src.replace(/\.[^/.]+$/, '');
+            }
+          });
+        })
+        .catch(() => {});
+    }
+
+    songs.forEach((_, i) => loadMeta(i));
+
+    // ── Update the big cover + now-playing text ──
+    function updateNowPlaying() {
+      const m = meta[current];
+      nowTitle.textContent  = m.title;
+      nowArtist.textContent = playing ? (m.artist || 'now playing') : (m.artist || 'tap to play');
+
+      if (m.coverUrl) {
+        coverImg.classList.remove('loaded');
+        coverImg.src = m.coverUrl;
+        coverImg.onload = () => coverImg.classList.add('loaded');
+      } else {
+        coverImg.classList.remove('loaded');
+        coverImg.src = '';
+      }
+    }
+
+    function setPlaying(val) {
+      playing = val;
+      playSvg.style.display  = val ? 'none'  : 'block';
+      pauseSvg.style.display = val ? 'block' : 'none';
+      nowArtist.textContent  = val
+        ? (meta[current].artist || 'now playing')
+        : (meta[current].artist || 'tap to play');
+      bars.forEach(b => b.classList.toggle('playing', val));
+    }
+
+    function loadTrack(index, autoplay) {
+      current = index;
+      audio.src = songs[index];
+      document.querySelectorAll('.pl-item').forEach((el, i) =>
+        el.classList.toggle('active', i === index)
+      );
+      updateNowPlaying();
+      if (autoplay) {
+        audio.play().catch(() => {});
+        setPlaying(true);
+      }
+    }
+
+    audio.addEventListener('ended', () => {
+      loadTrack((current + 1) % songs.length, true);
+    });
+
+    document.getElementById('play-icon').addEventListener('click', () => {
+      if (!audio.src || audio.src === window.location.href) {
+        loadTrack(0, true); return;
+      }
+      if (playing) { audio.pause(); setPlaying(false); }
+      else { audio.play().catch(() => {}); setPlaying(true); }
+    });
 
     document.getElementById('enter-btn').addEventListener('click', () => {
       enterScreen.style.opacity = '0';
@@ -231,24 +435,6 @@
         enterScreen.style.display = 'none';
         contentScreen.style.display = 'flex';
       }, 400);
-    });
-
-    musicToggle.addEventListener('click', () => {
-      if (!playing) {
-        music.play().catch(() => {});
-        playing = true;
-        playSvg.style.display = 'none';
-        pauseSvg.style.display = 'block';
-        musicSub.textContent = 'now playing';
-        bars.forEach(b => b.classList.add('playing'));
-      } else {
-        music.pause();
-        playing = false;
-        playSvg.style.display = 'block';
-        pauseSvg.style.display = 'none';
-        musicSub.textContent = 'tap to play';
-        bars.forEach(b => b.classList.remove('playing'));
-      }
     });
   </script>
 
