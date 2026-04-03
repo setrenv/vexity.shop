@@ -2,64 +2,255 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>In Progress</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coming Soon</title>
   <style>
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.7; } }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      background: #111;
-      color: #fff;
+      min-height: 100vh;
       display: flex;
-      justify-content: center;
       align-items: center;
-      height: 100vh;
-      margin: 0;
+      justify-content: center;
+      background: #0a0a0a;
       font-family: Arial, sans-serif;
-      font-size: 2rem;
     }
 
-    #enter {
+    #enter-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      animation: fadeIn 0.6s ease forwards;
+    }
+
+    .ring {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 1.5px solid #333;
+      border-top-color: #888;
+      animation: spin 2.5s linear infinite;
+    }
+
+    #enter-btn {
+      background: none;
+      border: 0.5px solid #444;
+      color: #999;
+      font-size: 13px;
+      letter-spacing: 0.15em;
+      padding: 10px 28px;
+      border-radius: 40px;
       cursor: pointer;
-      opacity: 1;
-      transition: opacity 0.3s ease;
-      user-select: none;
+      text-transform: uppercase;
+      transition: border-color 0.2s, color 0.2s;
+      font-family: inherit;
     }
 
-    #content {
-      display: none;
-      font-size: 1.25rem;
-      text-align: center;
-      padding: 0 16px;
+    #enter-btn:hover {
+      border-color: #888;
+      color: #eee;
     }
+
+    #content-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+      text-align: center;
+      padding: 0 24px;
+      animation: fadeIn 0.5s ease forwards;
+    }
+
+    .dot-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #444;
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+
+    .dot:nth-child(2) { animation-delay: 0.3s; }
+    .dot:nth-child(3) { animation-delay: 0.6s; }
+
+    .main-text {
+      color: #ccc;
+      font-size: 15px;
+      line-height: 1.7;
+      max-width: 300px;
+    }
+
+    .main-text span {
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .music-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #141414;
+      border: 0.5px solid #2a2a2a;
+      border-radius: 40px;
+      padding: 10px 20px 10px 14px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .music-bar:hover { border-color: #444; }
+
+    .play-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #222;
+      border: 0.5px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+
+    .music-bar:hover .play-icon { background: #2a2a2a; }
+    .play-icon svg { display: block; }
+
+    .music-label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      text-align: left;
+    }
+
+    .music-title {
+      color: #ddd;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .music-sub {
+      color: #555;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+    }
+
+    .bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 16px;
+    }
+
+    .bar {
+      width: 3px;
+      background: #444;
+      border-radius: 2px;
+      transition: background 0.2s;
+    }
+
+    @keyframes barBounce1 { 0%, 100% { height: 4px; } 50% { height: 14px; } }
+    @keyframes barBounce2 { 0%, 100% { height: 10px; } 50% { height: 5px; } }
+    @keyframes barBounce3 { 0%, 100% { height: 7px; } 50% { height: 13px; } }
+    @keyframes barBounce4 { 0%, 100% { height: 12px; } 50% { height: 4px; } }
+
+    .bar.playing { background: #666; }
+    .bar.playing:nth-child(1) { animation: barBounce1 0.8s ease-in-out infinite; }
+    .bar.playing:nth-child(2) { animation: barBounce2 0.8s ease-in-out infinite 0.1s; }
+    .bar.playing:nth-child(3) { animation: barBounce3 0.8s ease-in-out infinite 0.2s; }
+    .bar.playing:nth-child(4) { animation: barBounce4 0.8s ease-in-out infinite 0.15s; }
   </style>
 </head>
 <body>
-  <div id="enter">click to enter</div>
 
-  <div id="content">
-    idk coming soon, meanwhile enjoy my fav song, ty
-    <audio id="music" loop>
-      <source src="song1.mp3" type="audio/mpeg" />
-    </audio>
+  <div id="enter-screen">
+    <div class="ring"></div>
+    <button id="enter-btn">enter</button>
   </div>
 
+  <div id="content-screen">
+    <div class="dot-row">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+
+    <p class="main-text">
+      something's <span>coming soon</span> — until then,<br>enjoy my favourite song
+    </p>
+
+    <div class="music-bar" id="music-toggle">
+      <div class="play-icon">
+        <svg id="play-svg" width="12" height="14" viewBox="0 0 12 14" fill="none">
+          <path d="M1 1.5L11 7L1 12.5V1.5Z" fill="#888"/>
+        </svg>
+        <svg id="pause-svg" width="12" height="14" viewBox="0 0 12 14" fill="none" style="display:none">
+          <rect x="1" y="1" width="3.5" height="12" rx="1" fill="#888"/>
+          <rect x="7.5" y="1" width="3.5" height="12" rx="1" fill="#888"/>
+        </svg>
+      </div>
+      <div class="music-label">
+        <span class="music-title">song1.mp3</span>
+        <span class="music-sub">tap to play</span>
+      </div>
+      <div class="bars">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="music" loop><source src="song1.mp3" type="audio/mpeg"/></audio>
+
   <script>
-    const enter = document.getElementById("enter");
-    const content = document.getElementById("content");
-    const music = document.getElementById("music");
+    const enterScreen = document.getElementById('enter-screen');
+    const contentScreen = document.getElementById('content-screen');
+    const music = document.getElementById('music');
+    const musicToggle = document.getElementById('music-toggle');
+    const playSvg = document.getElementById('play-svg');
+    const pauseSvg = document.getElementById('pause-svg');
+    const musicSub = document.querySelector('.music-sub');
+    const bars = document.querySelectorAll('.bar');
+    let playing = false;
 
-    function enterSite() {
-      enter.style.opacity = "0";
-
+    document.getElementById('enter-btn').addEventListener('click', () => {
+      enterScreen.style.opacity = '0';
+      enterScreen.style.transition = 'opacity 0.4s ease';
       setTimeout(() => {
-        enter.style.display = "none";
-        content.style.display = "block";
+        enterScreen.style.display = 'none';
+        contentScreen.style.display = 'flex';
+      }, 400);
+    });
 
-
+    musicToggle.addEventListener('click', () => {
+      if (!playing) {
         music.play().catch(() => {});
-      }, 300);
-    }
-
-
-    enter.addEventListener("click", enterSite, { once: true });
+        playing = true;
+        playSvg.style.display = 'none';
+        pauseSvg.style.display = 'block';
+        musicSub.textContent = 'now playing';
+        bars.forEach(b => b.classList.add('playing'));
+      } else {
+        music.pause();
+        playing = false;
+        playSvg.style.display = 'block';
+        pauseSvg.style.display = 'none';
+        musicSub.textContent = 'tap to play';
+        bars.forEach(b => b.classList.remove('playing'));
+      }
+    });
   </script>
+
 </body>
 </html>
